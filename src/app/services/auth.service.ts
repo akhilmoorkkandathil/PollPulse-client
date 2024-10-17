@@ -9,15 +9,15 @@ import { Observable } from 'rxjs';
 })
 export class AuthService {
 
-  private apiUrl = 'http://localhost:80'; // Your API endpoint
+  private apiUrl = 'http://localhost:3000'; // Your API endpoint
 
   constructor(private http: HttpClient) {}
 
   register(user: User){
-    return this.http.post<ApiResponse>(`${this.apiUrl}/register`, user);
+    return this.http.post<ApiResponse>(`${this.apiUrl}/api/register`, user);
   }
 
   login(user: User): Observable<any> {
-    return this.http.post(`${this.apiUrl}/login`, user);
+    return this.http.post(`${this.apiUrl}/api/login`, user);
   }
 }

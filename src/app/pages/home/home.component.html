@@ -1,1 +1,43 @@
-<p>home works!</p>
+
+<div class="heading">
+    <h1 class="heading" style="color: white ;">Welcome to PollPulse</h1>
+</div>
+<div class="home-container">
+    <!-- Left section with title and horizontal cards -->
+    <div class="left-section">
+        @if (!selectedItem) {
+            <div class="card" *ngFor="let item of participants" (click)="selectPoll(item)">
+                <span class="card-name">{{ item.name }}</span>
+                <span class="card-count">{{ item.count }} votes</span>
+              </div>
+        }
+        @else {
+            <div class="card">
+                <span class="card-name">{{ selectedItem.name }}</span>
+                <span class="card-count">{{ selectedItem.count }} votes</span>
+            </div>
+
+            <button (click)="backToList()">Back to Polls</button>
+
+        }
+    </div>
+  
+    <!-- Right section with live chat -->
+    <div class="right-section">
+      <div class="chat-box">
+        <h2>Live Chat</h2>
+        <div class="chat-content" id="chat-content">
+          <div *ngFor="let msg of messages">
+            <div class="message" [ngClass]="{'sent': msg.sentByUser, 'received': !msg.sentByUser}">
+              {{ msg.content }}
+            </div>
+          </div>
+        </div>
+        <form (submit)="sendMessage()">
+          <input type="text" [(ngModel)]="newMessage" placeholder="Type a message..." required>
+          <button type="submit">Send</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  

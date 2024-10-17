@@ -1,0 +1,17 @@
+<div class="container">
+    <p-toast/>
+    <h1>Enter OTP</h1>
+    <div class="otp-container">
+        <input type="text" maxlength="1" #otp1 (input)="onInput(otp1, otp2)" autofocus>
+        <input type="text" maxlength="1" #otp2 (input)="onInput(otp2, otp3)" (keydown.backspace)="onBackspace(otp2, otp1)">
+        <input type="text" maxlength="1" #otp3 (input)="onInput(otp3, otp4)" (keydown.backspace)="onBackspace(otp3, otp2)">
+        <input type="text" maxlength="1" #otp4 (input)="onInput(otp4, otp5)" (keydown.backspace)="onBackspace(otp4, otp3)">
+        <input type="text" maxlength="1" #otp5 (input)="onInput(otp5, otp6)" (keydown.backspace)="onBackspace(otp5, otp4)">
+        <input type="text" maxlength="1" #otp6 (keydown.backspace)="onBackspace(otp6, otp5)">
+    </div>
+    <button style="margin-top: 15px;" (click)="submitOTP(otp1.value, otp2.value, otp3.value, otp4.value, otp5.value, otp6.value)">Submit OTP</button>
+    <div class="timer">
+        <p *ngIf="timeLeft > 0">Resend OTP in: {{ timeLeft }}s</p>
+        <p *ngIf="timeLeft === 0" (click)="resendOTP()" style="cursor: pointer; color: rgb(138, 138, 255);">Resend OTP</p>
+    </div>
+</div>

@@ -1,0 +1,58 @@
+.container {
+    background-color: black;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding: 1rem;
+}
+
+h1 {
+    color: white;
+    margin-bottom: 20px;
+}
+
+.otp-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.otp-container input {
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+    text-align: center;
+    border: 2px solid #28a745;
+    border-radius: 5px;
+    background-color: #222;
+    color: white;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.otp-container input:focus {
+    border-color: #218838;
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+}
+
+.timer {
+    margin-top: 20px;
+}
+.timer p{
+    color: white;
+}
+
+button {
+    background-color: #28a745;
+    border: none;
+    padding: 10px 20px;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #218838;
+}
