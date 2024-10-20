@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { User } from '../../models/user.model';
-import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../../services/authService/auth.service';
 import { Router } from '@angular/router';
 import { FormGroup, FormsModule } from '@angular/forms';
 import { ToastModule } from 'primeng/toast';
@@ -15,7 +15,7 @@ import { MessageService } from 'primeng/api';
   providers: [MessageService]
 })
 export class RegisterComponent {
-  user: User = { username: '',email:'', password: '' };
+  user: User = { userName: '',email:'', password: '' };
   loginForm!: FormGroup;
 
   constructor(private authService: AuthService, private router: Router, private messageService: MessageService) {}
@@ -26,7 +26,7 @@ export class RegisterComponent {
       (response) => {
         this.messageService.add({ severity: 'contrast', summary: 'Success', detail: response.message });
         // Handle successful login, e.g., store token and redirect
-       this.router.navigate(['/verify']);
+        this.router.navigate(['/verify'], { queryParams: { email: this.user.email } });
       },
       (error) => {
         // Handle login error

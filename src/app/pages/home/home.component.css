@@ -13,8 +13,13 @@
     justify-content: space-between;
   }
   
-  .left-section {
-    width: 40%;
+  .left-section  {
+    width: 65%;
+    height: 75vh;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+
   }
   
   .heading {
@@ -44,9 +49,15 @@
     color: #2ecc71;
     font-size: 1.2rem;
   }
+
+  .poll-details-container{
+    height: 50vh;
+  }
+  
   
   .right-section {
-    width: 50%;
+    width: 30%;
+    height: 70vh;
     background-color: #ffffff;
     border-radius: 10px;
     padding: 1.5rem;
@@ -54,14 +65,14 @@
   }
   
   .chat-box {
-    height: 500px;
+    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
   }
   
   .chat-content {
-    height: 400px;
+    height: 100vh;
     overflow-y: auto;
     margin-bottom: 1rem;
   }
@@ -73,8 +84,8 @@
   }
 
   .sent {
-    background-color: #3498db;
-    color: white;
+    background-color: #d7d7d7;
+    color: #333;
     align-self: flex-end;
   }
   
@@ -110,3 +121,92 @@
   button[type="submit"]:hover {
     background-color: #2980b9;
   }
+
+  .options-container h3 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: #34495e;
+    text-align: center;
+  }
+  
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .option-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background-color: #ecf0f1;
+    border: 2px solid #bdc3c7;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #2c3e50;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .option-button:hover {
+    background-color: #d5dbdb;
+  }
+  
+  .option-button.selected {
+    background-color: #3498db;
+    border-color: #2980b9;
+    color: #ffffff;
+  }
+  
+  .vote-count {
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    color: #7f8c8d;
+  }
+  
+  .option-button.selected .vote-count {
+    color: #e8f4fd;
+  }
+  
+  .vote-button {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    margin-top: 1rem;
+    background-color: #2ecc71;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .vote-button:hover:not(:disabled) {
+    background-color: #27ae60;
+  }
+  
+  .vote-button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+  }
+  
+  .back-button {
+    display: block;
+    width: 100%;
+    margin: 10px;
+    padding: 0.75rem;
+    background-color: #e74c3c;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .back-button:hover {
+    background-color: #c0392b;  }

@@ -5,19 +5,36 @@
 <div class="home-container">
     <!-- Left section with title and horizontal cards -->
     <div class="left-section">
-        @if (!selectedItem) {
-            <div class="card" *ngFor="let item of participants" (click)="selectPoll(item)">
-                <span class="card-name">{{ item.name }}</span>
-                <span class="card-count">{{ item.count }} votes</span>
+        @if (!showGraph) {
+            <div class="card" *ngFor="let poll of pollData" (click)="showChart(poll)">
+                <span class="card-name">{{ poll.question }}</span>
+                <span class="card-count">{{ poll.totalVotes }} votes</span>
               </div>
         }
         @else {
-            <div class="card">
-                <span class="card-name">{{ selectedItem.name }}</span>
-                <span class="card-count">{{ selectedItem.count }} votes</span>
+          <div class="poll-details-container">
+            <h2 class="poll-question">{{ selectedPoll?.question }}</h2>
+            <div class="graph" style="margin:3rem 10rem;">
+              <p-chart *ngIf="showGraph" type="bar" [data]="basicData" [options]="basicOptions"></p-chart>
             </div>
+            <div class="options-container">
+              <h3>Choose an option:</h3>
+              <div class="options-grid">
+                <button 
+                  *ngFor="let option of selectedPoll?.options; let i = index"
+                  class="option-button"
+                  [class.selected]="selectedOption === option.id"
+                  (click)="selectOption(option.id)"
+                >
+                  {{ option.name }}
+                </button>
+              </div>
+              <button class="vote-button" (click)="submitVote()" [disabled]="!selectedOption">Submit Vote</button>
+            </div>
+          
+            <button class="back-button" (click)="goBackToPollList()">Back to Poll List</button>
 
-            <button (click)="backToList()">Back to Polls</button>
+          </div>
 
         }
     </div>
@@ -28,15 +45,16 @@
         <h2>Live Chat</h2>
         <div class="chat-content" id="chat-content">
           <div *ngFor="let msg of messages">
-            <div class="message" [ngClass]="{'sent': msg.sentByUser, 'received': !msg.sentByUser}">
-              {{ msg.content }}
+            <div class="message" [ngClass]="{'sent': msg.sentByUser, 'received': !msg.sentByUser}" style="display: flex;">
+              <p style="font: 1.1rem sans-serif; font-weight:bold; margin-right: 5px;">{{msg.userName}} </p><p>{{ msg.content }}</p>
             </div>
           </div>
         </div>
         <form (submit)="sendMessage()">
-          <input type="text" [(ngModel)]="newMessage" placeholder="Type a message..." required>
+          <input type="text" [(ngModel)]="newMessage" name="message" placeholder="Type a message..." required>
           <button type="submit">Send</button>
         </form>
+        
       </div>
     </div>
   </div>

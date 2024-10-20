@@ -3,6 +3,9 @@ import { Component } from '@angular/core';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
+import { AuthService } from '../../services/authService/auth.service';
+
 
 @Component({
   selector: 'app-otp',
@@ -16,9 +19,14 @@ export class OtpComponent {
 
   timeLeft: number = 60;
   interval: any;
-constructor(private messageService: MessageService, private router:Router){}
+  email: string = '';
+constructor(private messageService: MessageService, private router:Router,private route: ActivatedRoute, private autheService:AuthService){}
 
   ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      this.email = params['email'];  // Retrieve the email from the query params
+    });
+
     this.startTimer();
   }
 
@@ -62,7 +70,18 @@ constructor(private messageService: MessageService, private router:Router){}
 
     if (otp.length === 6) { // Check if OTP is complete
       console.log('OTP:', otp);
-      this.router.navigate(['/login']);
+      this.autheService.verifyOtp({otp:otp,email:this.email}).subscribe(
+        (response) => {
+          this.messageService.add({ severity: 'contrast', summary: 'Success', detail: response.message });
+          // Handle successful login, e.g., store token and redirect
+         this.router.navigate(['/login']);
+        },
+        (error) => {
+          // Handle login error
+          console.error('Login failed', error);
+          this.messageService.add({ severity: 'contrast', summary: 'Error', detail: error.error.message});
+        }
+      );
     } else {
       this.messageService.add({ severity: 'contrast', summary: 'Error', detail: 'Please enter correct OTP'});
     }

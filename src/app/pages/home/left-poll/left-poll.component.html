@@ -1,0 +1,17 @@
+<div class="left-section">
+    @if (!selectedItem) {
+        <div class="card" *ngFor="let item of participants" (click)="selectPoll(item)">
+            <span class="card-name">{{ item.name }}</span>
+            <span class="card-count">{{ item.count }} votes</span>
+          </div>
+    }
+    @else {
+        <div class="card">
+            <span class="card-name">{{ selectedItem.name }}</span>
+            <span class="card-count">{{ selectedItem.count }} votes</span>
+        </div>
+
+        <button (click)="backToList()">Back to Polls</button>
+
+    }
+</div>

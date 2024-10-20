@@ -1,6 +1,9 @@
 export interface User {
-    username?: string;
-    email:string;
-    password: string;
+  _id?:string;
+  userName?: string;
+  email:string;
+  password: string;
+  createdAt?:string;
+  updatedAt?:string;
   }
   
