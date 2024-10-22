@@ -1,41 +1,74 @@
-
+<div class="container">
+  <p-toast />
 <div class="heading">
     <h1 class="heading" style="color: white ;">Welcome to PollPulse</h1>
 </div>
 <div class="home-container">
     <!-- Left section with title and horizontal cards -->
     <div class="left-section">
-        @if (!showGraph) {
-            <div class="card" *ngFor="let poll of pollData" (click)="showChart(poll)">
+
+        <!-- // Showing this list of the polls in the dashboard -->
+        @if (!showGraph && !addPollStatus) {
+            <div class="poll-list">
+              <div class="card" *ngFor="let poll of pollData" (click)="showChart(poll)">
                 <span class="card-name">{{ poll.question }}</span>
                 <span class="card-count">{{ poll.totalVotes }} votes</span>
+            </div>
+            <button class="add-poll-button" (click)="addNewPoll()">Add New Poll</button>
+            </div>
+        }
+        
+        @else if (addPollStatus) {
+          <!-- //Adding new poll  -->
+          <div class="poll-form-container">
+            <form (ngSubmit)="onSubmit()" #pollForm="ngForm" class="poll-form">
+              <!-- Input for Poll Question -->
+              <div class="form-group">
+                <label for="question" class="label">Poll Question:</label>
+                <input type="text" id="question" class="input-field" [(ngModel)]="newPoll.question" name="question" required>
               </div>
+          
+              <!-- Input for Poll Options -->
+              <div *ngFor="let option of newPoll.options; let i = index" class="form-group">
+                <label for="option{{ i }}" class="label">Option {{ i + 1 }}:</label>
+                <input type="text" id="option{{ i }}" class="input-field" [(ngModel)]="newPoll.options[i].name" name="option{{ i }}" required>
+              </div>
+          
+          
+              <!-- Submit and Back Buttons -->
+              <div class="button-container">
+                @if (count<4) {<button type="button" class="vote-button" (click)="addOption()">Add Another Option</button>}
+                @else {<button type="submit" class="vote-button">Add Poll</button>}
+                <button type="button" class="back-button" (click)="goBackToPollList()">Back to Poll List</button>
+              </div>
+            </form>
+          </div>
+          
         }
         @else {
-          <div class="poll-details-container">
-            <h2 class="poll-question">{{ selectedPoll?.question }}</h2>
-            <div class="graph" style="margin:3rem 10rem;">
-              <p-chart *ngIf="showGraph" type="bar" [data]="basicData" [options]="basicOptions"></p-chart>
-            </div>
-            <div class="options-container">
-              <h3>Choose an option:</h3>
-              <div class="options-grid">
-                <button 
-                  *ngFor="let option of selectedPoll?.options; let i = index"
-                  class="option-button"
-                  [class.selected]="selectedOption === option.id"
-                  (click)="selectOption(option.id)"
-                >
-                  {{ option.name }}
-                </button>
-              </div>
-              <button class="vote-button" (click)="submitVote()" [disabled]="!selectedOption">Submit Vote</button>
-            </div>
-          
-            <button class="back-button" (click)="goBackToPollList()">Back to Poll List</button>
-
+          <!-- // Showing the poll graph and options -->
+          <h2 class="poll-question">{{ selectedPoll?.question }}</h2>
+          <div class="graph" style="margin:0rem 10rem;">
+            <p-chart *ngIf="showGraph" type="bar" [data]="basicData" [options]="basicOptions"></p-chart>
           </div>
-
+          <div class="options-container">
+            <h3>Choose an option:</h3>
+            <div class="options-grid">
+              <button 
+                *ngFor="let option of selectedPoll?.options; let i = index"
+                class="option-button"
+                [class.selected]="selectedOption === option"
+                (click)="selectOption(selectedPoll._id,option)"
+              >
+                {{ option.name }}
+              </button>
+            </div>
+            <div class="buttons" style="display: flex;">
+              <button class="back-button" (click)="goBackToPollList()">Back to Poll List</button>
+              <button class="vote-button" (click)="submitVote(selectedPoll)">Submit Vote</button>
+            </div>
+          </div>
+        
         }
     </div>
   
@@ -59,3 +92,4 @@
     </div>
   </div>
   
+</div>

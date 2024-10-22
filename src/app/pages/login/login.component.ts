@@ -35,7 +35,7 @@ export class LoginComponent {
         localStorage.setItem('refreshToken',response.data.refreshToken)
         // Handle successful login, e.g., store token and redirect
         this.messageService.add({ severity: 'contrast', summary: 'Success', detail: response.message });
-        this.router.navigate(['/home'], { queryParams: { email: this.user.email } });
+        this.router.navigate(['/home']);
       },
       (error) => {
         // Handle login error

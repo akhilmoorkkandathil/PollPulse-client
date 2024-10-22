@@ -2,46 +2,83 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatService } from '../../services/chatService/chat.service';
-import { ActivatedRoute } from '@angular/router';
-import { UserService } from '../../services/userService/user.service';
 import { User } from '../../models/user.model';
 import { UserDataService } from '../../services/userDataService/user-data.service';
-import { FormateMessages } from '../../interfaces/chatInterface';
+import { FormateMessages, PollData, PollOption } from '../../interfaces/chatInterface';
 import { ChartModule } from 'primeng/chart';
-
+import { PollService } from '../../services/pollServices/poll.service';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule,FormsModule,ChartModule],
+  imports: [CommonModule,FormsModule,ChartModule,ToastModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
-  providers:[ChatService]
+  providers:[ChatService,MessageService]
 })
 export class HomeComponent implements OnInit {
 
 
-  constructor( private chatService: ChatService , private route: ActivatedRoute, private userService:UserService, private userDataService:UserDataService){}
+  constructor( private chatService: ChatService, private userDataService:UserDataService,private messageService: MessageService, private pollService:PollService){}
 
   userData:User | null = null;
   newMessage: string = '';
-  email:string = '';
   messages: FormateMessages[]=[];
+  addPollStatus:boolean = false;
+  count:number = 1;
+  submissionStatus!:boolean;
+  newPoll:PollData = {
+    question: '',
+    createdBy:'',
+    options: [
+      { name: '', votes: 0 }
+    ]
+  };
+  pollData!:PollData[];
 
 
   ngOnInit() {
-    this.route.queryParams.subscribe(params => {
-      this.email = params['email'];  // Retrieve the email from the query params
-    });
     this.chatService.connect();
     this.fetchMessages()
     this.getUserData()
     this.fetchOldChats()
     this.scrollToBottom()
     this.setupChartOptions();
+    this.fetchPolls()
+    this.chatService.listenForPollUpdates().subscribe(updatedPoll => {
+      const index = this.pollData.findIndex(poll => poll._id === updatedPoll._id);
+      if (index !== -1) {
+        this.pollData[index] = updatedPoll; // Update the specific poll
+        if (this.selectedPoll && this.selectedPoll._id === updatedPoll._id) {
+          this.selectedPoll = updatedPoll; // Update selected poll if it matches
+        }
+      }
+    });
+
   }
+  
+
+  fetchPolls() {
+    this.pollService.fetchPolls().subscribe({
+      next: (response) => {
+        if (response) {
+          this.pollData = response.data;  // Assuming response.data contains the list of polls
+          console.log('Poll data fetched:', this.pollData);
+        } else {
+          console.error('Failed to fetch polls:', response);
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching polls:', err);
+      }
+    });
+  }
+  
+
 
   fetchOldChats(){
     this.chatService.fetchOldChats().subscribe(
@@ -93,30 +130,7 @@ export class HomeComponent implements OnInit {
     }, 100);
   }
 
-  pollData = [
-    {
-        question: "What is the best programming language?",
-        options: [
-            { name: "JavaScript", votes: 45 },
-            { name: "Python", votes: 30 },
-            { name: "Java", votes: 20 },
-            { name: "C++", votes: 15 }
-        ],
-        totalVotes: 110,
-        createdBy: "64c72a1b5f1a2d233dddc44f"
-    },
-    {
-        question: "Which is your favorite web framework?",
-        options: [
-            { name: "Angular", votes: 50 },
-            { name: "React", votes: 40 },
-            { name: "Vue.js", votes: 30 },
-            { name: "Next.js", votes: 20 }
-        ],
-        totalVotes: 120,
-        createdBy: "64c72a1b5f1a2d233dddc44f"
-    }
-];
+  
 
 basicData: any;
 basicOptions: any;
@@ -124,8 +138,58 @@ showGraph: boolean = false;
 selectedPoll: any;
 selectedOption: string | null = null;
 
+addOption() {
+  this.count++
+  this.newPoll.options.push({ name: '', votes: 0 });
+}
+
+onSubmit() {
+  if (this.newPoll.question && this.newPoll.options.length > 0) {
+    // Push the new poll data to pollData array (or save to backend)
+    this.pollData.push({
+      _id: this.generateUniqueId(),
+      question: this.newPoll.question,
+      options: this.newPoll.options,
+      totalVotes: 0,
+      createdBy: this.userData?._id,  // Assuming you have a user ID
+      submitted: []
+    });
+
+    if (this.userData) {
+      this.newPoll.createdBy = this.userData._id; // Wrap it in an array if your schema expects an array
+    }
+    console.log('New Poll Added:', this.newPoll);
+    this.pollService.addPoll(this.newPoll).subscribe(
+      response => {
+        console.log('Poll added successfully:', response);
+        this.addPollStatus = false;
+        // Perform any additional actions like showing a success message or resetting the form
+      },
+      error => {
+        console.error('Error adding poll:', error);
+        // Handle the error case
+      }
+    );
+    // Reset form
+    this.newPoll = {
+      question: '',
+      userId:'',
+      options: [
+        { name: '', votes: 0 }
+      ]
+    };
+
+    // Optionally hide the form after submission
+    this.addPollStatus = false;
+  }
+}
+generateUniqueId() {
+  return Math.random().toString(36).substring(2, 9);
+}
 
 showChart(poll: any): void {
+  console.log(poll,this.userData?._id)
+  
   this.selectedPoll = poll;
     const documentStyle = getComputedStyle(document.documentElement);
     const textColor = documentStyle.getPropertyValue('--text-color');
@@ -228,18 +292,76 @@ setupChartOptions(): void {
 }
 
 goBackToPollList(): void {
+  this.addPollStatus = false;
   this.showGraph = false;
   this.selectedPoll = null;
 }
-selectOption(optionId: string) {
-  this.selectedOption = optionId;
+selectOption(pollId: string, selectedPolOption: PollOption) {
+  console.log(selectedPolOption, pollId);
+  // Find the poll by pollId
+  let selectedPoll: PollData | undefined = this.pollData.find(poll => poll._id === pollId);
+  if (selectedPoll) {
+    let votedPolls = JSON.parse(localStorage.getItem('votedPolls') || '[]');
+
+
+// Check if the user has already voted for the selected poll
+if (votedPolls.includes(selectedPoll._id)) {
+  //this.messageService.add({ severity: 'contrast', summary: 'Success', detail: "You have already voted for this poll!" });
+  return;
+}
+  
+    // Find the selected option in the poll
+    const selectedOption = selectedPoll.options.find(option => option.name === selectedPolOption.name);
+
+    if (selectedOption) {
+      // Increment the vote count for the selected option
+      selectedOption.votes += 1;
+      
+      // Increment the total votes for the poll
+      if (!selectedPoll.totalVotes) {
+        selectedPoll.totalVotes = 0;  // Initialize totalVotes if undefined
+      }
+      selectedPoll.totalVotes += 1;
+
+      // Optionally, update the submitted array if needed
+      if (!selectedPoll.submitted) {
+        selectedPoll.submitted = [];  // Initialize if undefined
+      }
+    }
+  }
 }
 
-submitVote() {
-  if (this.selectedOption) {
-    // Implement logic to submit the vote
-    console.log(`Voted for option: ${this.selectedOption}`);
+submitVote(selectedPoll:PollData) {
+  let votedPolls = JSON.parse(localStorage.getItem('votedPolls') || '[]');
+
+// Ensure that votedPolls is an array
+if (!Array.isArray(votedPolls)) {
+  votedPolls = [];
+}
+
+// Check if the user has already voted for the selected poll
+if (votedPolls.includes(selectedPoll._id)) {
+  this.messageService.add({ severity: 'contrast', summary: 'Success', detail: "You have already voted for this poll!" });
+  return;
+}
+  this.showChart(selectedPoll);
+  if (this.userData?._id) {
+    if (!selectedPoll.submitted) {
+      selectedPoll.submitted = []; // Ensure the submitted array exists
+    }
+    selectedPoll.submitted.push(this.userData._id);
   }
+  this.chatService.submitVote(selectedPoll);
+  votedPolls.push(selectedPoll._id);
+
+// Update the votedPolls array in localStorage
+localStorage.setItem('votedPolls', JSON.stringify(votedPolls));
+  this.messageService.add({ severity: 'contrast', summary: 'Success', detail: "Votting Successfull!!!" });
+}
+
+addNewPoll():void{  
+  this.count = 1;
+  this.addPollStatus = true
 }
 
 }

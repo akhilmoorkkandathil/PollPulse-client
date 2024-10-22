@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { ChatMessage, oldChatResponse } from '../../interfaces/chatInterface';
+import { ChatMessage, oldChatResponse, PollData } from '../../interfaces/chatInterface';
 import { Observable } from 'rxjs';
 import { io } from 'socket.io-client';
 import { HttpClient } from '@angular/common/http';
@@ -47,6 +47,22 @@ export class ChatService {
 
       // Cleanup when unsubscribed
       return () => this.socket.off('receiveMessage');
+    });
+  }
+
+  // Add method to submit vote to the server
+  public submitVote(poll: PollData): void {
+    this.socket.emit('submitVote', poll);  // Emit the poll data to the server
+  }
+
+  // Add method to listen for poll updates from the server
+  public listenForPollUpdates(): Observable<PollData> {
+    return new Observable(observer => {
+      this.socket.on('updatePoll', (updatedPoll: PollData) => {
+        observer.next(updatedPoll);  // Emit updated poll data to the subscriber
+      });
+
+      return () => this.socket.off('updatePoll'); // Clean up when the observable is unsubscribed
     });
   }
 
