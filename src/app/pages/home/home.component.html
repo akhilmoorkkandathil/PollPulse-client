@@ -1,7 +1,8 @@
 <div class="container">
   <p-toast />
-<div class="heading">
+<div class="main-heading">
     <h1 class="heading" style="color: white ;">Welcome to PollPulse</h1>
+    <i class="fas fa-sign-out-alt logout-icon" (click)="logout()"></i>
 </div>
 <div class="home-container">
     <!-- Left section with title and horizontal cards -->
@@ -56,9 +57,10 @@
             <div class="options-grid">
               <button 
                 *ngFor="let option of selectedPoll?.options; let i = index"
+                [ngClass]="{'active': selectedOptionIndex === i}" 
                 class="option-button"
                 [class.selected]="selectedOption === option"
-                (click)="selectOption(selectedPoll._id,option)"
+                (click)="selectOption(selectedPoll._id,option,i)"
               >
                 {{ option.name }}
               </button>
@@ -71,25 +73,11 @@
         
         }
     </div>
-  
-    <!-- Right section with live chat -->
     <div class="right-section">
-      <div class="chat-box">
-        <h2>Live Chat</h2>
-        <div class="chat-content" id="chat-content">
-          <div *ngFor="let msg of messages">
-            <div class="message" [ngClass]="{'sent': msg.sentByUser, 'received': !msg.sentByUser}" style="display: flex;">
-              <p style="font: 1.1rem sans-serif; font-weight:bold; margin-right: 5px;">{{msg.userName}} </p><p>{{ msg.content }}</p>
-            </div>
-          </div>
-        </div>
-        <form (submit)="sendMessage()">
-          <input type="text" [(ngModel)]="newMessage" name="message" placeholder="Type a message..." required>
-          <button type="submit">Send</button>
-        </form>
-        
-      </div>
+    
+      <app-right-chat></app-right-chat>
     </div>
-  </div>
+</div>
+    <!-- Right section with live chat -->
   
 </div>

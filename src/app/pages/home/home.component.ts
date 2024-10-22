@@ -9,13 +9,15 @@ import { ChartModule } from 'primeng/chart';
 import { PollService } from '../../services/pollServices/poll.service';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { Router } from '@angular/router';
+import { RightChatComponent } from './right-chat/right-chat.component';
 
 
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule,FormsModule,ChartModule,ToastModule],
+  imports: [CommonModule,FormsModule,ChartModule,ToastModule,RightChatComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
   providers:[ChatService,MessageService]
@@ -23,14 +25,18 @@ import { MessageService } from 'primeng/api';
 export class HomeComponent implements OnInit {
 
 
-  constructor( private chatService: ChatService, private userDataService:UserDataService,private messageService: MessageService, private pollService:PollService){}
+  constructor( 
+    private chatService: ChatService, 
+    private userDataService:UserDataService,
+    private messageService: MessageService, 
+    private pollService:PollService,
+    private router:Router){}
 
   userData:User | null = null;
-  newMessage: string = '';
-  messages: FormateMessages[]=[];
   addPollStatus:boolean = false;
   count:number = 1;
   submissionStatus!:boolean;
+  isSelected:boolean = false;
   newPoll:PollData = {
     question: '',
     createdBy:'',
@@ -39,26 +45,38 @@ export class HomeComponent implements OnInit {
     ]
   };
   pollData!:PollData[];
+  selectedOptionIndex: number | null = null;
+  basicData: unknown;
+  basicOptions: unknown;
+  showGraph: boolean = false;
+  selectedPoll: any;
+  selectedOption: string | null = null;
 
 
   ngOnInit() {
     this.chatService.connect();
-    this.fetchMessages()
     this.getUserData()
-    this.fetchOldChats()
     this.scrollToBottom()
     this.setupChartOptions();
     this.fetchPolls()
     this.chatService.listenForPollUpdates().subscribe(updatedPoll => {
       const index = this.pollData.findIndex(poll => poll._id === updatedPoll._id);
       if (index !== -1) {
-        this.pollData[index] = updatedPoll; // Update the specific poll
+        this.pollData[index] = updatedPoll; 
         if (this.selectedPoll && this.selectedPoll._id === updatedPoll._id) {
-          this.selectedPoll = updatedPoll; // Update selected poll if it matches
+          this.selectedPoll = updatedPoll; 
+          this.showChart(updatedPoll)
         }
       }
     });
+    this.checkUserData()
 
+  }
+
+  checkUserData(){
+    if(!this.userData){
+      this.router.navigate(['/login'])
+    }
   }
   
 
@@ -66,7 +84,7 @@ export class HomeComponent implements OnInit {
     this.pollService.fetchPolls().subscribe({
       next: (response) => {
         if (response) {
-          this.pollData = response.data;  // Assuming response.data contains the list of polls
+          this.pollData = response.data;  
           console.log('Poll data fetched:', this.pollData);
         } else {
           console.error('Failed to fetch polls:', response);
@@ -79,47 +97,9 @@ export class HomeComponent implements OnInit {
   }
   
 
-
-  fetchOldChats(){
-    this.chatService.fetchOldChats().subscribe(
-      (res)=>{
-        this.messages = res.data;
-      },
-      (err)=>{
-        console.log(err);
-        
-      }
-    )
-  }
-
   getUserData(){
-    this.userDataService.userData$.subscribe(data => {
-      this.userData = data; // Update local userData when it changes
-    });
+    this.userData = this.userDataService.getUserData()
   }
-
-
-  fetchMessages(){
-    this.chatService.getMessages().subscribe((message) => {
-
-      console.log("Messge recieve in the home compoinnetn",message);
-      if(message.senderId!==this.userData?._id){
-        this.messages.push({userName:message.userName, content: message.content, sentByUser: false });
-      }
-      this.scrollToBottom();
-    });
-  }
-
-  sendMessage(): void {
-    if (this.newMessage.trim() && this.userData?.userName && this.userData?._id) {
-        const messageObj = { senderId: this.userData._id, content: this.newMessage };
-        this.chatService.sendMessage(messageObj);
-        this.messages.push({ userName: this.userData.userName.toUpperCase(), content: this.newMessage, sentByUser: true });
-        
-        this.newMessage = '';
-        this.scrollToBottom();
-    }
-}
 
   scrollToBottom() {
     setTimeout(() => {
@@ -130,14 +110,6 @@ export class HomeComponent implements OnInit {
     }, 100);
   }
 
-  
-
-basicData: any;
-basicOptions: any;
-showGraph: boolean = false;
-selectedPoll: any;
-selectedOption: string | null = null;
-
 addOption() {
   this.count++
   this.newPoll.options.push({ name: '', votes: 0 });
@@ -145,32 +117,28 @@ addOption() {
 
 onSubmit() {
   if (this.newPoll.question && this.newPoll.options.length > 0) {
-    // Push the new poll data to pollData array (or save to backend)
     this.pollData.push({
       _id: this.generateUniqueId(),
       question: this.newPoll.question,
       options: this.newPoll.options,
       totalVotes: 0,
-      createdBy: this.userData?._id,  // Assuming you have a user ID
+      createdBy: this.userData?._id, 
       submitted: []
     });
 
     if (this.userData) {
-      this.newPoll.createdBy = this.userData._id; // Wrap it in an array if your schema expects an array
+      this.newPoll.createdBy = this.userData._id;
     }
     console.log('New Poll Added:', this.newPoll);
     this.pollService.addPoll(this.newPoll).subscribe(
       response => {
         console.log('Poll added successfully:', response);
         this.addPollStatus = false;
-        // Perform any additional actions like showing a success message or resetting the form
       },
       error => {
         console.error('Error adding poll:', error);
-        // Handle the error case
       }
     );
-    // Reset form
     this.newPoll = {
       question: '',
       userId:'',
@@ -179,7 +147,6 @@ onSubmit() {
       ]
     };
 
-    // Optionally hide the form after submission
     this.addPollStatus = false;
   }
 }
@@ -292,11 +259,14 @@ setupChartOptions(): void {
 }
 
 goBackToPollList(): void {
+  this.selectedOptionIndex = null;
   this.addPollStatus = false;
   this.showGraph = false;
   this.selectedPoll = null;
 }
-selectOption(pollId: string, selectedPolOption: PollOption) {
+selectOption(pollId: string, selectedPolOption: PollOption,index:number) {
+  this.isSelected = true;
+  this.selectedOptionIndex = index; // S
   console.log(selectedPolOption, pollId);
   // Find the poll by pollId
   let selectedPoll: PollData | undefined = this.pollData.find(poll => poll._id === pollId);
@@ -304,42 +274,35 @@ selectOption(pollId: string, selectedPolOption: PollOption) {
     let votedPolls = JSON.parse(localStorage.getItem('votedPolls') || '[]');
 
 
-// Check if the user has already voted for the selected poll
 if (votedPolls.includes(selectedPoll._id)) {
-  //this.messageService.add({ severity: 'contrast', summary: 'Success', detail: "You have already voted for this poll!" });
   return;
 }
   
-    // Find the selected option in the poll
     const selectedOption = selectedPoll.options.find(option => option.name === selectedPolOption.name);
 
     if (selectedOption) {
-      // Increment the vote count for the selected option
       selectedOption.votes += 1;
       
-      // Increment the total votes for the poll
       if (!selectedPoll.totalVotes) {
-        selectedPoll.totalVotes = 0;  // Initialize totalVotes if undefined
+        selectedPoll.totalVotes = 0;  
       }
       selectedPoll.totalVotes += 1;
 
-      // Optionally, update the submitted array if needed
       if (!selectedPoll.submitted) {
-        selectedPoll.submitted = [];  // Initialize if undefined
+        selectedPoll.submitted = []; 
       }
     }
   }
 }
 
 submitVote(selectedPoll:PollData) {
+  this.selectedOptionIndex = null
   let votedPolls = JSON.parse(localStorage.getItem('votedPolls') || '[]');
 
-// Ensure that votedPolls is an array
 if (!Array.isArray(votedPolls)) {
   votedPolls = [];
 }
 
-// Check if the user has already voted for the selected poll
 if (votedPolls.includes(selectedPoll._id)) {
   this.messageService.add({ severity: 'contrast', summary: 'Success', detail: "You have already voted for this poll!" });
   return;
@@ -347,14 +310,13 @@ if (votedPolls.includes(selectedPoll._id)) {
   this.showChart(selectedPoll);
   if (this.userData?._id) {
     if (!selectedPoll.submitted) {
-      selectedPoll.submitted = []; // Ensure the submitted array exists
+      selectedPoll.submitted = []; 
     }
     selectedPoll.submitted.push(this.userData._id);
   }
   this.chatService.submitVote(selectedPoll);
   votedPolls.push(selectedPoll._id);
 
-// Update the votedPolls array in localStorage
 localStorage.setItem('votedPolls', JSON.stringify(votedPolls));
   this.messageService.add({ severity: 'contrast', summary: 'Success', detail: "Votting Successfull!!!" });
 }
@@ -362,6 +324,13 @@ localStorage.setItem('votedPolls', JSON.stringify(votedPolls));
 addNewPoll():void{  
   this.count = 1;
   this.addPollStatus = true
+}
+
+logout() {
+  this.router.navigate(['/login']);
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  this.userDataService.clearUserData();
 }
 
 }

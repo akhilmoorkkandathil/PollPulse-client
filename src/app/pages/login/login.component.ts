@@ -29,10 +29,10 @@ export class LoginComponent {
     this.authService.login(this.user).subscribe(
       (response) => {
         console.log(response);
-        this.userDataService.updateUserData(response.data.user)
+        this.userDataService.setUserData(response.data.user)
         
         localStorage.setItem('accessToken',response.data.accessToken);
-        localStorage.setItem('refreshToken',response.data.refreshToken)
+        localStorage.setItem('refreshToken',response.data.refreshToken);
         // Handle successful login, e.g., store token and redirect
         this.messageService.add({ severity: 'contrast', summary: 'Success', detail: response.message });
         this.router.navigate(['/home']);

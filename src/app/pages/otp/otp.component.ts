@@ -72,9 +72,10 @@ constructor(private messageService: MessageService, private router:Router,privat
       console.log('OTP:', otp);
       this.autheService.verifyOtp({otp:otp,email:this.email}).subscribe(
         (response) => {
-          this.messageService.add({ severity: 'contrast', summary: 'Success', detail: response.message });
           // Handle successful login, e.g., store token and redirect
-         this.router.navigate(['/login']);
+         this.router.navigate(['/login'],{
+          state: { message: response.message } // Pass the message here
+        });
         },
         (error) => {
           // Handle login error

@@ -1,31 +1,21 @@
-import { Injectable } from '@angular/core';
-import {
-  HttpRequest,
-  HttpHandler,
-  HttpEvent,
-  HttpInterceptor
-} from '@angular/common/http';
+import { HttpEvent, HttpInterceptorFn, HttpRequest, HttpHandlerFn } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-@Injectable()
-export class AuthInterceptor implements HttpInterceptor {
-  constructor() {}
+export const AuthInterceptor: HttpInterceptorFn = (
+  req: HttpRequest<unknown>,
+  next: HttpHandlerFn
+): Observable<HttpEvent<unknown>> => {
+  const accessToken: string | null = localStorage.getItem('accessToken');
+  const refreshToken: string | null = localStorage.getItem('refreshToken');
 
-  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    
-    const accessToken: string | null = localStorage.getItem('accessToken');
-    const refreshToken: string | null = localStorage.getItem('refreshToken');
-
-
-    if (accessToken && refreshToken) {
-      request = request.clone({
-        setHeaders: {
-            Authorization: `Bearer ${accessToken}`,
-            'X-Refresh-Token': refreshToken
-        }
-      });
-    }
-
-    return next.handle(request);
+  if (accessToken) {
+    req = req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${accessToken}`,
+        'X-Refresh-Token': refreshToken ? refreshToken : ''
+      }
+    });
   }
-}
+
+  return next(req); // Call the next handler
+};
