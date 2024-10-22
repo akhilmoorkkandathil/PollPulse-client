@@ -3,14 +3,15 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatService } from '../../../services/chatService/chat.service';
 import { UserDataService } from '../../../services/userDataService/user-data.service';
-import { MessageService } from 'primeng/api';
 import { FormateMessages } from '../../../interfaces/chatInterface';
 import { User } from '../../../models/user.model';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+
 
 @Component({
   selector: 'app-right-chat',
   standalone: true,
-  imports: [FormsModule,CommonModule],
+  imports: [FormsModule,CommonModule,MatSlideToggleModule],
   templateUrl: './right-chat.component.html',
   styleUrl: './right-chat.component.css'
 })
@@ -19,6 +20,8 @@ export class RightChatComponent {
   newMessage: string = '';
   messages: FormateMessages[]=[];
   userData:User | null = null;
+  status:boolean = true;
+  buttonName:string = 'Disable Chat'
 
 
   constructor(
@@ -33,7 +36,9 @@ export class RightChatComponent {
     this.scrollToBottom()
   }
 
-
+  toggle(){
+    this.status = !this.status
+  }
   
 
   fetchOldChats(){

@@ -5,6 +5,26 @@
     padding: 1.5rem;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   }
+  .chat-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Aligns the elements with space between them */
+  }
+  
+  .chat-heading h2 {
+    margin: 0;
+    padding-right: 10px; /* Add some space between the heading and the button */
+  }
+
+  .chat-disabled {
+    display: flex;
+    align-items: center;  /* Vertically centers the content */
+    justify-content: center; /* Horizontally centers the content */
+    height: 100vh; /* Full height to ensure vertical centering */
+    background-position-y: center; /* Adjusts background vertical position */
+  }
+  
+  
   
   .chat-box {
     height: 500px;

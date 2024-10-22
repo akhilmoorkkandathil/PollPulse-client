@@ -1,16 +1,27 @@
 
     <div class="chat-box">
-      <h2>Live Chat</h2>
-      <div class="chat-content" id="chat-content">
-        <div *ngFor="let msg of messages">
-          <div class="message" [ngClass]="{'sent': msg.sentByUser, 'received': !msg.sentByUser}" style="display: flex;">
-            <p style="font: 1.1rem sans-serif; font-weight:bold; margin-right: 5px;">{{msg.userName}} </p><p>{{ msg.content }}</p>
+        <div class="chat-heading">
+            <h2>Live Chat</h2>
+            <p (click)="toggle()"><mat-slide-toggle></mat-slide-toggle></p>
           </div>
+          
+      @if(status){
+        <div class="chat-content" id="chat-content">
+            <div *ngFor="let msg of messages">
+              <div class="message" [ngClass]="{'sent': msg.sentByUser, 'received': !msg.sentByUser}" style="display: flex;">
+                <p style="font: 1.1rem sans-serif; font-weight:bold; margin-right: 5px;">{{msg.userName}} </p><p>{{ msg.content }}</p>
+              </div>
+            </div>
+          </div>
+          <form (submit)="sendMessage()">
+            <input type="text" [(ngModel)]="newMessage" name="message" placeholder="Type a message..." required>
+            <button type="submit">Send</button>
+          </form>
+      }
+      @else {
+        <div class="chat-disabled">
+            <p>Chat disabled</p>
         </div>
-      </div>
-      <form (submit)="sendMessage()">
-        <input type="text" [(ngModel)]="newMessage" name="message" placeholder="Type a message..." required>
-        <button type="submit">Send</button>
-      </form>
+      }
       
     </div>
